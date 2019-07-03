@@ -297,3 +297,7 @@ fieldVal, _ := type_.FieldByName("hello")
 	- 想要用反射修改对象状态，前提是interface.data是settable，即pointer-interface
 + 通过反射可以“动态”调用方法
 + 因为Golong本身不支持模板，因此在需要使用模板的场景下往往需要用反射（reflect）来实现。
+
+### 参考链接
++ https://golang.org/pkg/reflect/#Kind
++ https://juejin.im/post/5a75a4fb5188257a82110544
