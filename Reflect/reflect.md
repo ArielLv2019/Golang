@@ -169,3 +169,131 @@ func DoFiledAndMethod(input interface{}) {
     - 3. 最后对结果取其Name和Type得知具体的方法名
     - 4. 也就是说：反射可以将“反射类型对象”再重新转换为“接口类型变量”
     - 5. struct或者struct的嵌套都是一样的判断处理方式
+
+### 通过reflect设置实际变量的值
++ reflect.Value是通过reflect.ValueOf(X)获得的，只有当X是指针的时候，才可以通过reflect.Value修改实际变量X的值，即：要修改反射类型的对象就一定要保证其值是"addressable"的
++ 示例：
+```go
+package main
+
+import (
+	"fmt"
+	"reflect"
+)
+
+func main() {
+	var num float64 = 1.2345
+	fmt.Println("old value of pointer: ", num) //old value of pointer:  1.2345
+
+	//通过reflect.ValueOf获取num中的reflect.Value,注意：参数必须是指针才能修改其值
+	pointer := reflect.ValueOf(&num)
+	newValue := pointer.Elem() //通过Elem()获取所指向的值；如果pointer不是指针，直接panic
+
+	fmt.Println("type of pointer: ", newValue.Type())          //type of pointer:  float64
+	//通过CanSet方法查询是否可以设置
+	fmt.Println("settability of pointer: ", newValue.CanSet()) //settability of pointer:  true
+
+	//重新赋值
+	newValue.SetFloat(77)
+	fmt.Println("new value of pointer: ", num) //new value of pointer:  77
+
+	/////////////////////////
+	//如果reflect.ValueOf的参数不是指针，会panic
+	invalidPointer := reflect.ValueOf(num)
+	newVal := invalidPointer.Elem() //非指针，直接panic。panic: reflect: call of reflect.Value.Elem on float64 Value
+}
+```
++ Note：
+	- reflect.Value.Elem()表示获取原始值对应的反射对象，只能修改原始对象，当前反射对象不能修改。
+	- 如果要修改反射类型的对象，其值必须是“addressable"的，对应的要传入的是指针，同时通过Elem()方法获取原始值对应的反射对象
+	- struct或者struct的嵌套都是同样的处理
+
+### 通过reflect.ValueOf调用方法
++ 应用场景：做框架工程的时候，需要可以随意扩展方法，或者说用户可以自定义方法，通过什么手段来扩展让用户能够自定义呢？关键点在于用户的自定义方法是未知的，因此可以用reflect搞定
++ 示例：
+```go
+package main
+
+import (
+	"fmt"
+	"reflect"
+)
+
+type User struct {
+	Id   int
+	Name string
+	Age  int
+}
+
+func (u User) ReflectCallFuncHasArgs(name string, age int) {
+	fmt.Println("ReflectCallFuncHasArgs name:  ", name, "age: ", age, "and origin user name: ", u.Name)
+}
+
+func (u User) ReflectCallFuncNoArgs() {
+	fmt.Println("ReflectCallFuncNoArgs")
+}
+
+//如何通过反射进行方法的调用？
+//本来可以用u.ReflectCallFuncXXX直接调用的，
+//但是如果要通过反射，则首先要将方法注册，也就是MethodByName,然后通过反射调用methodValue.Call
+func main() {
+	user := User{1, "allen.wu", 25}
+
+	// 1. 通过reflect.ValueOf(interface)得到reflect.Value,得到"反射类型对象"
+	getVal := reflect.ValueOf(user)
+
+	// 2. 有参数的方法的调用方式
+	// 一定要指定参数为正确的方法名，如果错误将直接panic，MethodByName返回一个函数值对应的reflect.Value方法的名字
+	// func (v Value) MethodByName(name string) Value
+	methodVal := getVal.MethodByName("ReflectCallFuncHasArgs")
+	args := []reflect.Value{reflect.ValueOf("newName"), reflect.ValueOf(30)}
+	methodVal.Call(args)
+
+	// 3. 无参数的方法的调用方式
+	methodVal = getVal.MethodByName("ReflectCallFuncNoArgs") //一定要指定参数为正确的方法名
+	args = make([]reflect.Value, 0)
+	methodVal.Call(args)
+}
+
+// 输出：
+//ReflectCallFuncHasArgs name:   newName age:  30 and origin user name:  allen.wu
+//ReflectCallFuncNoArgs
+
+```
+### Golang的反射reflect性能
++ Golang的反射很慢，这个跟它的API设计有关。Java里面，一般使用反射都是这样来弄的。
+```java
+Field field = calzz.getField("hello")
+field.get(obj1)
+field.get(obj2)
+```
++ 这个取得的反射对象类型是java.lang.reflect.Field。它是可以复用的。只要传入不同的obj，就可以取得这个obj上对应的field。
++ 但是Golang的设计不是这样设计的：
+```go
+type_ := reflect.TypeOf(obj)
+field, _ := type_.FieldByName("hello")
+```
++ 这里取出来的field对象是reflect.StructField类型，但是它没有办法用来取得相应对象上的值。如果要取值，需要用另外一套对object，而不是type的反射。
+```go
+type_ := reflect.ValueOf(obj)
+fieldVal, _ := type_.FieldByName("hello")
+```
++ 这里取出来的fieldValue类型是reflect.Value,它是一个具体的值，而不是一个可复用的反射对象，每次反射都需要malloc这个reflect.Value结构体，并且还涉及到GC。
+#### 小结
++ Gloang reflect慢的两个主要原因：
+	- 涉及到内存分配以及后续的GC
+	- reflect里面有大量的枚举，也就是for循环，比如类型之类的
+
+## 总结
++ 反射可以大大提高程序的灵活性，使得interface{}有更大的发挥余地
+	- 反射必须结合interface才能玩得转
+	- 变量的type要是concrete type（也就是interface变量）才有反射一说
++ 反射可以将“接口类型变量”--转换为-->"反射类型对象"
+	- 反射使用TypeOf和ValueOf函数从接口中获取目标对象信息
++ 反射可以将“反射类型对象”--转换为-->"接口类型变量"
+	- reflect.Value.Interface().(已知的类型)
+	- 遍历reflect.Type的Field获取其Field
++ 反射可以修改反射类型对象，但是其值必须是“addressable”
+	- 想要用反射修改对象状态，前提是interface.data是settable，即pointer-interface
++ 通过反射可以“动态”调用方法
++ 因为Golong本身不支持模板，因此在需要使用模板的场景下往往需要用反射（reflect）来实现。
