@@ -52,7 +52,7 @@ Since 42 is in the range [-231, 231 - 1], the final result is 42.
 "-+12" -> (0)
 "12jiui88"->(12)
 ```
-+ 4) 如果最终的结果大于int32的最大值或者是小于int32的最小值，返回INT_MAX或者INT_MIN
++  4) 如果最终的结果大于int32的最大值或者是小于int32的最小值，返回INT_MAX或者INT_MIN
 ```
 "-91283472332" -> (-2147483648)
 ```
@@ -139,6 +139,69 @@ public:
         }
         
         return tail;
+    }
+};
+```
+
+## remove-nth-node-from-end-of-list
+```
+https://leetcode.com/problems/remove-nth-node-from-end-of-list/
+
+Given the head of a linked list, remove the nth node from the end of the list and return its head.
+
+Example 1:
+Input: head = [1,2,3,4,5], n = 2
+Output: [1,2,3,5]
+
+Example 2:
+Input: head = [1], n = 1
+Output: []
+
+Example 3:
+Input: head = [1,2], n = 1
+Output: [1]
+```
+### 解题思路
++ Topic: 快慢指针
++ 为了处理删除链表头指针的情况，在链表前面加一个假的节点dummyHead；
++ 先让快指针pFast走n步，中间如果快指针为空（说明n比链表长度大）直接返回原链表；
++ 让慢指针pSlow指向假的头加点，快慢指针同时后移直到pFast==nullptr;此时pSlow->next就是要删除的节点。
++ 用临时变量pDel保存要删除的节点pDel=pSlow->next; 更改pSlow的next的值，pSlow->next=pSlow->next->next; 
+```cpp
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* removeNthFromEnd(ListNode* head, int n) {
+        ListNode dummyHead(0, head);
+        
+        ListNode* pFast = head;
+        for(int i = 0; i < n; i++){
+            if(pFast == nullptr){
+                return head;
+            }
+            pFast = pFast->next;
+        }
+        
+        ListNode* pSlow = &dummyHead;
+        while(pFast != nullptr){
+            pFast = pFast->next;
+            pSlow = pSlow->next;
+        }
+        
+        ListNode* pDel = pSlow->next;
+        pSlow->next = pSlow->next->next;
+        delete pDel;
+        
+        return dummyHead.next;
     }
 };
 ```
