@@ -1,4 +1,4 @@
-+ stoi
+## stoi
 ```
 https://leetcode.com/problems/string-to-integer-atoi/
 Implement the myAtoi(string s) function, which converts a string to a 32-bit signed integer (similar to C/C++'s atoi function).
@@ -32,27 +32,27 @@ The parsed integer is 42.
 Since 42 is in the range [-231, 231 - 1], the final result is 42.
 
 ```
-## 解题步骤
-### 1）忽略最前面的空格符号:  "  
+### 解题步骤
++ 1）忽略最前面的空格符号:  "  
 ```
 -42"->(-42)
 ```
-### 2)检查第一个字符是否为'-': 
-#### 2.1） 如果是，就设置负数标志为true： 
++ 2)检查第一个字符是否为'-': 
+++ 2.1） 如果是，就设置负数标志为true： 
 ```
 “-42” -> (42)
 ```
-#### 2.2)  如果不是，就判断第一个字符是否为'+',如果是就将下标加1； 
++ 2.2)  如果不是，就判断第一个字符是否为'+',如果是就将下标加1； 
 ``` 
 "+1"->(1); 
 ```
-#### 3）循环读取剩下的字符，直到下一个非数字字符或者到字符串的结尾。剩下的字符忽略。
++ 3）循环读取剩下的字符，直到下一个非数字字符或者到字符串的结尾。剩下的字符忽略。
 ```
 "words and 987" -> (0)
 "-+12" -> (0)
 "12jiui88"->(12)
 ```
-#### 4) 如果最终的结果大于int32的最大值或者是小于int32的最小值，返回INT_MAX或者INT_MIN
++ 4) 如果最终的结果大于int32的最大值或者是小于int32的最小值，返回INT_MAX或者INT_MIN
 ```
 "-91283472332" -> (-2147483648)
 ```
@@ -92,7 +92,7 @@ public:
     }
 };
 ```
-+ reverse Linked List
+## reverse Linked List
 ```
 https://leetcode.com/problems/reverse-linked-list/
 Given the head of a singly linked list, reverse the list, and return the reversed list.
