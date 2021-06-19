@@ -92,3 +92,53 @@ public:
     }
 };
 ```
++ reverse Linked List
+```
+https://leetcode.com/problems/reverse-linked-list/
+Given the head of a singly linked list, reverse the list, and return the reversed list.
+
+Example 1:
+Input: head = [1,2,3,4,5]
+Output: [5,4,3,2,1]
+
+Example 2:
+Input: head = [1,2]
+Output: [2,1]
+
+Example 3:
+Input: head = []
+Output: []
+
+```
+### 解题思路
++ 首先定义要返回的新链表为空： tail=nullptr;
++ 从头到尾遍历要逆转的链表，将每一个节点查到新链表的头部。head->next = tail, tail = head;
+```cpp
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* reverseList(ListNode* head) {
+        
+        ListNode* tail = nullptr;
+        
+        while(head != nullptr){
+            //一定要用一个临时值先保存旧链表的下一个要处理的节点
+            auto next = head->next; 
+            head->next = tail;
+            tail = head;
+            head = next;
+        }
+        
+        return tail;
+    }
+};
+```
