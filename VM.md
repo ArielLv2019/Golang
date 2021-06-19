@@ -30,23 +30,53 @@ Step 3: "42" ("42" is read in)
 The parsed integer is 42.
 Since 42 is in the range [-231, 231 - 1], the final result is 42.
 
-测试用例：
-"words and 987"
-"-91283472332"
-"   -42"
-"+1"
-"-+12"
-测试结果：
-0
--2147483648
--42
-1
-0
 
 解题思路：
-1）忽略最前面的空格符号  "   -42"->(-42)
-2)检查签名
-1）忽略最前面的空格符号  "   -42"->(-4
+1）忽略最前面的空格符号:  "   -42"->(-42)
+2)检查第一个字符是否为'-': 
+2.1） 如果是，就设置负数标志为true： “-42” -> (42)
+2.2)  如果不是，就判断第一个字符是否为'+',如果是就将下标加1； "+1"->(1); 
+3）循环读取剩下的字符，直到下一个非数字字符或者到字符串的结尾。剩下的字符忽略。
+"words and 987" -> (0)
+"-+12" -> (0)
+"12jiui88"->(12)
+4) 如果最终的结果大于int32的最大值或者是小于int32的最小值，返回INT_MAX或者INT_MIN
+"-91283472332" -> (-2147483648)
+
 ```
-"-91283472332"z一千米
-"-91283472332"
+```cpp
+class Solution {
+public:
+    int myAtoi(string s) {
+        long long res = 0;
+        int idx = 0;
+        for(; idx < s.size(); idx++){
+            if(s[idx]!= ' '){
+                break;
+            }
+        }
+        bool negative = false;
+        if(s[idx] == '-'){
+            negative = true;
+            idx++;
+        }else if(s[idx] == '+'){
+            idx++;
+        }
+        for(; idx < s.size(); idx++){
+            if(s[idx] >= '0' && s[idx] <= '9'){
+                res = res*10 + (s[idx] - '0');
+                if(negative == false && res >= static_cast<long long>(INT_MAX)){
+                    return INT_MAX;
+                }
+                if(negative == true && -res <= static_cast<long long>(INT_MIN)){
+                    return INT_MIN;
+                }
+            }else{
+                break;
+            }      
+        }
+        
+        return negative == true? int(-res) : int(res);
+    }
+};
+```
