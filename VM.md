@@ -73,7 +73,6 @@ Input: head = [1], pos = -1
 Output: false
 Explanation: There is no cycle in the linked list.
 ```
-## remove-nth-node-from-end-of-list
 + 解题思路
 ++ Topic： 快慢指针
 ++ 用两个指针pFast，pSlow，每一次pFast走两步，pSlow走一步，如果两者相遇，就说明有环，返回true；否则返回false
